@@ -31,6 +31,7 @@ export function Dashboard({ initial }: { initial: ResponseRow[] }) {
   const [live, setLive] = useState(false);
   const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [showInvite, setShowInvite] = useState(false);
   const knownIds = useRef(new Set(initial.map((r) => r.id)));
 
   // Realtime: a broadcast ping triggers an authenticated refetch.
@@ -90,18 +91,29 @@ export function Dashboard({ initial }: { initial: ResponseRow[] }) {
           <h1 className="text-2xl font-semibold text-navy sm:text-3xl">Survey dashboard</h1>
           <p className="mt-1 text-slate">Customer feedback at a glance.</p>
         </div>
-        <span
-          className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-sm font-medium ${
-            live ? "bg-teal/10 text-teal-dark" : "bg-line-soft text-slate"
-          }`}
-        >
-          <span className="relative flex h-2.5 w-2.5">
-            {live && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal opacity-60" />}
-            <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${live ? "bg-teal" : "bg-slate/50"}`} />
+        <div className="flex items-center gap-3">
+          <span
+            className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-sm font-medium ${
+              live ? "bg-teal/10 text-teal-dark" : "bg-line-soft text-slate"
+            }`}
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              {live && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal opacity-60" />}
+              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${live ? "bg-teal" : "bg-slate/50"}`} />
+            </span>
+            {live ? "Live" : "Connecting…"}
           </span>
-          {live ? "Live" : "Connecting…"}
-        </span>
+          <button
+            onClick={() => setShowInvite((v) => !v)}
+            aria-expanded={showInvite}
+            className="rounded-md bg-brand px-4 py-2 font-medium text-white shadow-sm transition hover:bg-brand-dark"
+          >
+            ✉️ Send survey invite
+          </button>
+        </div>
       </div>
+
+      {showInvite && <InviteCard onClose={() => setShowInvite(false)} />}
 
       <div className="mt-6 flex flex-col gap-2 rounded-lg border border-line bg-white p-4 sm:flex-row sm:items-center sm:gap-4">
         <label htmlFor="filter" className="font-medium text-navy">
@@ -141,7 +153,6 @@ export function Dashboard({ initial }: { initial: ResponseRow[] }) {
         </section>
 
         <section className="flex flex-col gap-6">
-          <InviteCard />
           <div className="flex min-h-0 flex-col">
             <div className="mb-3 flex items-baseline justify-between">
               <h2 className="text-lg font-semibold text-navy">List</h2>
@@ -226,7 +237,7 @@ function ResponseItem({
   );
 }
 
-function InviteCard() {
+function InviteCard({ onClose }: { onClose: () => void }) {
   const [state, action, pending] = useActionState<InviteState, FormData>(sendInvite, {});
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -234,34 +245,33 @@ function InviteCard() {
     if (state.ok) formRef.current?.reset();
   }, [state]);
 
+  const inputCls =
+    "w-full rounded-md border border-line px-3 py-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20";
+
   return (
-    <div className="rounded-lg border border-line bg-white p-5 shadow-[0_1px_4px_rgba(33,51,67,0.06)]">
-      <h2 className="text-lg font-semibold text-navy">Send a survey invite</h2>
-      <p className="text-sm text-slate">The customer gets an email with their unique survey link.</p>
-      <form ref={formRef} action={action} className="mt-4 space-y-3">
-        <input
-          name="name"
-          placeholder="Customer name"
-          required
-          className="w-full rounded-md border border-line px-3 py-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-        />
-        <input
-          name="email"
-          type="email"
-          placeholder="customer@company.com"
-          required
-          className="w-full rounded-md border border-line px-3 py-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-        />
+    <div className="mt-6 rounded-lg border border-brand/40 bg-white p-5 shadow-[0_2px_8px_rgba(33,51,67,0.08)]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-navy">Send a survey invite</h2>
+          <p className="text-sm text-slate">The customer gets an email with their unique survey link.</p>
+        </div>
+        <button onClick={onClose} aria-label="Close" className="rounded-md px-2 text-xl leading-none text-slate hover:bg-canvas">
+          ×
+        </button>
+      </div>
+      <form ref={formRef} action={action} className="mt-4 flex flex-col gap-3 md:flex-row">
+        <input name="name" placeholder="Customer name" required autoFocus className={inputCls} />
+        <input name="email" type="email" placeholder="customer@company.com" required className={inputCls} />
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-md bg-brand px-4 py-2 font-medium text-white transition hover:bg-brand-dark disabled:opacity-60"
+          className="shrink-0 rounded-md bg-brand px-6 py-2 font-medium text-white transition hover:bg-brand-dark disabled:opacity-60"
         >
           {pending ? "Sending…" : "Send invite"}
         </button>
-        {state.message && <p className="text-sm text-teal-dark">{state.message}</p>}
-        {state.error && <p className="text-sm text-detractor">{state.error}</p>}
       </form>
+      {state.message && <p className="mt-3 text-sm text-teal-dark">✓ {state.message}</p>}
+      {state.error && <p className="mt-3 text-sm text-detractor">{state.error}</p>}
     </div>
   );
 }
