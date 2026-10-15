@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* HubSpot-inspired brand tokens */
+@theme {
+  --color-brand: #ff5c35;
+  --color-brand-dark: #e04a26;
+  --color-brand-soft: #fff1ee;
+  --color-navy: #213343;
+  --color-navy-soft: #2d3e50;
+  --color-slate: #516f90;
+  --color-teal: #00bda5;
+  --color-teal-dark: #00957f;
+  --color-canvas: #f5f8fa;
+  --color-line: #cbd6e2;
+  --color-line-soft: #eaf0f6;
+
+  /* Chart status palette (validated for CVD separation) */
+  --color-detractor: #e0434a;
+  --color-passive: #d9901a;
+  --color-promoter: #00957f;
+
+  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-navy);
+}
+
+@keyframes flash-in {
+  from {
+    background-color: var(--color-brand-soft);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.animate-flash {
+  animation: flash-in 3s ease-out;
+}
