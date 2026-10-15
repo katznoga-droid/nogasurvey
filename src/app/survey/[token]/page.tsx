@@ -1,10 +1,23 @@
+import { Suspense } from "react";
 import { CenteredShell } from "@/components/Logo";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { SurveyForm } from "./SurveyForm";
 
-export const dynamic = "force-dynamic";
+export default function SurveyPage({ params }: PageProps<"/survey/[token]">) {
+  return (
+    <Suspense
+      fallback={
+        <CenteredShell>
+          <p className="text-center text-slate">Loading your survey…</p>
+        </CenteredShell>
+      }
+    >
+      <SurveyContent params={params} />
+    </Suspense>
+  );
+}
 
-export default async function SurveyPage({ params }: PageProps<"/survey/[token]">) {
+async function SurveyContent({ params }: { params: PageProps<"/survey/[token]">["params"] }) {
   const { token } = await params;
   const { data: invite } = await supabaseAdmin()
     .from("invites")

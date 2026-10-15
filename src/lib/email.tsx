@@ -1,3 +1,4 @@
+import { render } from "@react-email/components";
 import { Resend } from "resend";
 import { InviteEmail } from "@/emails/InviteEmail";
 import { FollowUpEmail } from "@/emails/FollowUpEmail";
@@ -16,7 +17,7 @@ export async function sendInviteEmail({ to, name, token }: { to: string; name: s
     from: from(),
     to,
     subject: "We would love your opinion",
-    react: <InviteEmail name={name} surveyUrl={`${siteUrl()}/survey/${token}`} />,
+    html: await render(<InviteEmail name={name} surveyUrl={`${siteUrl()}/survey/${token}`} />),
   });
   if (error) throw new Error(error.message);
 }
@@ -27,7 +28,7 @@ export async function sendFollowUpEmail({ to, name, nps }: { to: string; name: s
     from: from(),
     to,
     subject: positive ? "We love that you love us! 🍪" : "We are sad to hear that 🍰",
-    react: <FollowUpEmail name={name} positive={positive} siteUrl={siteUrl()} />,
+    html: await render(<FollowUpEmail name={name} positive={positive} siteUrl={siteUrl()} />),
   });
   if (error) throw new Error(error.message);
 }

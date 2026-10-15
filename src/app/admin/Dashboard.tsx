@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   BUCKET_COLORS,
   CUSTOMER_TYPES,
@@ -13,6 +13,18 @@ import {
 import { getResponses, sendInvite, type InviteState, type ResponseRow } from "./actions";
 import { HappyChart, NpsByTypeChart, NpsDistributionChart, ResponsesOverTimeChart } from "./Charts";
 
+// Browser client used only for the realtime subscription; created once per page.
+let realtimeClient: SupabaseClient | undefined;
+function getRealtimeClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return undefined;
+  realtimeClient ??= createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  return realtimeClient;
+}
+
 export function Dashboard({ initial }: { initial: ResponseRow[] }) {
   const [rows, setRows] = useState(initial);
   const [filter, setFilter] = useState("all");
@@ -23,10 +35,8 @@ export function Dashboard({ initial }: { initial: ResponseRow[] }) {
 
   // Realtime: a broadcast ping triggers an authenticated refetch.
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) return;
-    const supabase = createClient(url, key, { auth: { persistSession: false } });
+    const supabase = getRealtimeClient();
+    if (!supabase) return;
 
     const refresh = async () => {
       try {
