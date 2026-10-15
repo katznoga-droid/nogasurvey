@@ -150,7 +150,7 @@ We copy HubSpot's general look and feel, but **not** its logo, name or trademark
 /admin/login                   Admin login
 /admin                         Dashboard (protected)
 ```
-Server Actions: `submitSurvey`, `login`, `logout`, `sendInvite`, `getDashboardData(filter)`.
+Server Actions: `submitSurvey`, `login`, `logout`, `sendInvite`, `getResponses`. The customer-type filter is applied in the browser over the fetched rows.
 
 ## 9. Decisions and assumptions
 - Resend runs in **test mode** with `onboarding@resend.dev`. Until a domain is verified, emails are **only delivered to the email address on Noga's Resend account**. Sending to anyone else fails with a clear error in the dashboard. To fix this later, verify a domain in Resend and change `EMAIL_FROM`.
@@ -159,14 +159,30 @@ Server Actions: `submitSurvey`, `login`, `logout`, `sendInvite`, `getDashboardDa
 - One response per invite link. Customers can't edit a response after submitting.
 - If the follow-up email fails, the survey submission still succeeds. The failure is logged and `follow_up_sent_at` stays null.
 - No multi-admin accounts or roles: a single shared admin login, as specified.
-- `gh` CLI isn't installed on this machine. The GitHub repo is created either by installing `gh` or by Noga creating an empty repo on github.com.
+- `gh` CLI isn't installed on this machine. Noga created the GitHub repo on github.com; pushes go through Git Credential Manager.
+- The Vercel MCP connector can't create projects in Noga's account (scope `noga12`), so Noga imported the project through vercel.com/new. Every push to `main` deploys automatically.
 
-## 10. Open items
-- [ ] Cookie and cake photos: use free-license photos (e.g. from Unsplash) saved in `/public/email/`. They need to be picked and downloaded (requires Noga's OK).
-- [ ] Noga's Resend API key (and the account email that test sends go to).
-- [ ] GitHub account/username to create the repo under.
+### Next.js 16 notes (this project's version)
+- `cacheComponents` is on. Don't use `export const dynamic`. Put request-time data (DB reads, `params`, `cookies()`) inside an async component wrapped in `<Suspense>`.
+- Middleware is now `src/proxy.ts`, exporting `proxy()`.
+- Resend needs pre-rendered HTML: call `render()` from `@react-email/components` and pass `html`, not `react`.
+- Bundled docs live in `node_modules/next/dist/docs/`. Read them before using an unfamiliar API.
 
-## 11. Build plan
+## 10. Status (2026-10-15): live
+- **Production:** https://nogasurvey.vercel.app (admin at `/admin`, username `admin`, password `login123`)
+- **GitHub:** https://github.com/katznoga-droid/nogasurvey (branch `main`)
+- **Supabase:** project `nogasurvey` (ref `potunqkhqebgfygzgnxq`, us-east-1, free tier)
+- **Photos:** Unsplash License. Cookies: photo-1499636136210 · Cake: photo-1517427294546, stored in `public/email/`.
+- **Tested on production:** login, dashboard, invite email, survey, thank-you page, live dashboard update with no reload, and the follow-up email.
+- **Email testing:** in Resend test mode, send to `delivered@resend.dev` (Resend's test address) or to the Resend account owner's own email.
+- **Email previews:** `npx tsx scripts/preview-emails.tsx` writes `email-previews/*.html` (gitignored).
+- **Test rows in the DB:** "Demo Customer One" (demo-token-1), "Resend Tester" and "Live Tester". `demo-token-2` and `demo-token-3` are still unused.
+
+### Next steps
+- [ ] Verify a domain in Resend and update `EMAIL_FROM` so emails reach real customers.
+- [ ] Optionally delete the test responses listed above.
+
+## 11. Build plan (done)
 1. Scaffold Next.js + Tailwind + TypeScript, brand theme, fonts, git init.
 2. Supabase project, schema migration, RLS, seed sample data.
 3. Survey page, validation, thank-you page, submit action.
