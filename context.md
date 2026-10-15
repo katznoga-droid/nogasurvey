@@ -176,11 +176,10 @@ Server Actions: `submitSurvey`, `login`, `logout`, `sendInvite`, `getResponses`.
 - **Tested on production:** login, dashboard, invite email, survey, thank-you page, live dashboard update with no reload, and the follow-up email.
 - **Email testing:** in Resend test mode, send to `delivered@resend.dev` (Resend's test address) or to the Resend account owner's own email.
 - **Email previews:** `npx tsx scripts/preview-emails.tsx` writes `email-previews/*.html` (gitignored).
-- **Test rows in the DB:** "Demo Customer One" (demo-token-1), "Resend Tester" and "Live Tester". `demo-token-2` and `demo-token-3` are still unused.
+- **DB contents:** the 60 seeded sample responses (test rows deleted). Unused test links: `/survey/demo-token-2` and `/survey/demo-token-3`.
 
 ### Next steps
 - [ ] Verify a domain in Resend and update `EMAIL_FROM` so emails reach real customers.
-- [ ] Optionally delete the test responses listed above.
 
 ## 11. Build plan (done)
 1. Scaffold Next.js + Tailwind + TypeScript, brand theme, fonts, git init.
